@@ -15,10 +15,15 @@ private static void AdjustOtherSamplePositions(
     // Adjust positions for samples in the range
     foreach (var item in positionRange)
     {
-        if (tempPositionMap.ContainsKey(item.Code))
-            continue;  // Skip samples already in the tempPositionMap
-
-        // Increment or decrement by 2 for samples not in tempPositionMap
-        tempPositionMap[item.Code] = item.Position + (isMovingDown ? 2 : -2);
+        // If the sample is not in tempPositionMap, increment by 2 or decrement by 2
+        if (!tempPositionMap.ContainsKey(item.Code))
+        {
+            tempPositionMap[item.Code] = item.Position + (isMovingDown ? 2 : -2);
+        }
+        else
+        {
+            // If it is already in the map, increment or decrement by 1
+            tempPositionMap[item.Code] = item.Position + (isMovingDown ? 1 : -1);
+        }
     }
 }
