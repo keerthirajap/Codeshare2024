@@ -66,7 +66,10 @@ Send Notification:
 
 Once ScanStatus is "Clean," a message is sent to the Service Bus Topic to signal the file is ready for further processing or use.
 This workflow ensures efficient file handling, automated monitoring, and reliable notification delivery once the file is scanned and verified.
-    
+
+
+
+    ------------------------------------------------------------------------
 Here’s the complete implementation for the scenario where a user uploads a file via an HTTP trigger, the file is stored in Azure Blob Storage with `FalconRequest` metadata, and a Durable Function periodically checks the metadata. When the metadata indicates the scan is clean, it sends a message to a Service Bus Topic.
 
 ### 1. **Orchestration Function** (Polling for Metadata Updates)
