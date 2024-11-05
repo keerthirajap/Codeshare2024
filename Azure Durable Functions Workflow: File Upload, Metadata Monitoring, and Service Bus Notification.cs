@@ -1,3 +1,72 @@
+Detailed Workflow Explanation
+The solution involves a step-by-step process to handle file uploads, monitor for metadata updates, and send a notification once the scan is complete. Here’s how each component works:
+
+1. HTTP Trigger Function - Upload File and Start Orchestration
+Step-by-Step Process:
+Receive File and Metadata:
+
+The user sends a POST request with a file (IFormFile), FalconRequest metadata, and FileName.
+Upload File to Blob Storage:
+
+The file is uploaded to Azure Blob Storage in a specified container.
+Metadata, including FalconRequest, is attached to the uploaded file.
+Start Durable Function:
+
+The function initiates a Durable Function orchestration (OrchestratorWithPolling) by passing the Blob URL.
+It returns a status response containing the orchestration instance ID for tracking.
+2. Durable Function Orchestration - Polling for Metadata Updates
+Step-by-Step Process:
+Receive Blob URL:
+
+The Durable Function orchestration starts with the Blob URL provided by the HTTP trigger.
+Periodic Check for Metadata:
+
+The function enters a loop, periodically invoking the CheckMetadata activity function.
+It waits 30 seconds between checks using CreateTimer.
+Check Metadata:
+
+The CheckMetadata function retrieves the file's metadata from Blob Storage.
+It looks for a ScanStatus field in the metadata.
+Exit Condition:
+
+The loop breaks when ScanStatus is found in the metadata.
+Send Notification:
+
+If ScanStatus is "Clean," the function triggers SendToServiceBusTopic to send a message.
+3. Activity Function - Check Metadata
+Step-by-Step Process:
+Retrieve Blob Metadata:
+The CheckMetadata function uses the Blob URL to access the file in Blob Storage.
+It retrieves and returns the file’s metadata, focusing on the ScanStatus field.
+4. Activity Function - Send Message to Service Bus
+Step-by-Step Process:
+Prepare and Send Message:
+The SendToServiceBusTopic function creates a message indicating the file scan is complete.
+It sends this message to a predefined Service Bus Topic using the connection string and topic name.
+5. Configuration and Setup
+Environment Variables:
+AzureWebJobsStorage: Connection string for Azure Blob Storage.
+ServiceBusConnectionString: Connection string for Azure Service Bus.
+ServiceBusTopicName: The name of the Service Bus Topic.
+host.json Configuration:
+Specifies settings for the Durable Task extension, like the hub name used to track orchestration state.
+Blob Container:
+Ensure the Blob Storage container name is correctly set and accessible.
+Workflow Summary:
+User Uploads a File:
+
+Via an HTTP trigger, the file and metadata are uploaded to Blob Storage.
+Start Durable Orchestration:
+
+Begins polling for updates to the file’s metadata.
+Periodic Metadata Check:
+
+Every 30 seconds, it checks for the ScanStatus metadata update.
+Send Notification:
+
+Once ScanStatus is "Clean," a message is sent to the Service Bus Topic to signal the file is ready for further processing or use.
+This workflow ensures efficient file handling, automated monitoring, and reliable notification delivery once the file is scanned and verified.
+    
 Here’s the complete implementation for the scenario where a user uploads a file via an HTTP trigger, the file is stored in Azure Blob Storage with `FalconRequest` metadata, and a Durable Function periodically checks the metadata. When the metadata indicates the scan is clean, it sends a message to a Service Bus Topic.
 
 ### 1. **Orchestration Function** (Polling for Metadata Updates)
